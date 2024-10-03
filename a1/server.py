@@ -6,11 +6,10 @@ from urllib.parse import unquote, parse_qs
 
 class Server:
     def __init__(self, addr, port, timeout):
-        """
-        Initializes the server with the specified address, port, and timeout.
-        Sets up the server socket and binds it to the address and port.
-        Initializes the sessions dictionary to manage client sessions.
-        """
+        # This constructor initializes the server class with the specified addr, port, and timeout values.
+        # It initializes the sessions dictionary to store client sessions. 
+        # it also intializes the server_socket object and bind it to the given addr and port to listen on. 
+        # You can add any additional instance variables you need for the server's operation.
         self.addr = addr
         self.port = port
         self.timeout = timeout
@@ -30,11 +29,10 @@ class Server:
         self.lock = threading.Lock()    # To manage access to sessions
 
     def start_server(self):
-        """
-        Starts the server to accept incoming connections.
-        Handles each client connection in a separate thread.
-        Monitors server activity and shuts down gracefully after a period of inactivity.
-        """
+        # The method should run the server indefinitely, accepting incoming connections and handling them in separate threads. 
+        # The method should also track the last time a connection was made, 
+        # if no new connections are made within the specified timeout period, 
+        # the loop stops and the server should close by calling the stop_server() method.
         self.running = True
         while self.running:
             # Set timeout for accept based on remaining time before shutdown
@@ -50,7 +48,7 @@ class Server:
                 with self.lock:
                     self.last_activity = time.time()
                 print(f"Accepted connection from {client_address}")
-                client_thread = threading.Thread(target=self.handle_request, args=(client_socket, client_address))
+                client_thread = threading.Thread(target=self.handle_request, args=(client_socket,))
                 client_thread.daemon = True
                 client_thread.start()
             except socket.timeout:
@@ -61,9 +59,7 @@ class Server:
                 continue
 
     def stop_server(self):
-        """
-        Stops the server by closing the server socket and terminating the server loop.
-        """
+        # This method should close the server's socket and terminate the server's operation.
         self.running = False
         try:
             self.server_socket.close()
@@ -72,10 +68,8 @@ class Server:
             print(f"Error closing server socket: {e}")
 
     def parse_request(self, request_data):
-        """
-        Parses raw HTTP request data into request line, headers, and body.
-        Returns a tuple of (request_line, headers_dict, body).
-        """
+        # Parses raw HTTP request data into request line, headers, and body.
+        # Returns a tuple of (request_line, headers_dict, body).
         try:
             # Decode bytes to string
             request_text = request_data.decode('utf-8')
@@ -107,13 +101,9 @@ class Server:
             print(f"Error parsing request: {e}")
             return None, {}, ""
 
-    def handle_request(self, client_socket, client_address):
-        """
-        Handles incoming HTTP requests from a client.
-        Determines the HTTP method and invokes the appropriate handler.
-        Closes the client socket after processing the request.
-        """
+    def handle_request(self, client_socket):      
         try:
+            client_address = client_socket.getpeername()
             # Receive data from client
             request_data = b""
             client_socket.settimeout(5)    # Timeout for receiving data
@@ -128,11 +118,12 @@ class Server:
                         break
                 except socket.timeout:
                     break
+            # make sure data includes entire request
             if not request_data:
                 print(f"No data received from {client_address}")
                 client_socket.close()
                 return
-            # Parse the request
+            # extract request details
             request_line, headers, body = self.parse_request(request_data)
             if not request_line:
                 print(f"Malformed request from {client_address}")
@@ -145,28 +136,29 @@ class Server:
                 client_socket.close()
                 return
             method, path, version = parts
-            # Default to index.html if path is '/'
+            # If no path is specified, the server defaults to serving index.html.
             if path == "/":
                 path = "/index.html"
             # URL decode the path
             path = unquote(path)
-            # Handle the request based on the method
+            # If the method is GET, the method calls handle_get_request() to serve the requested file.
             if method.upper() == "GET":
-                self.handle_get_request(client_socket, path, client_address)
+                self.handle_get_request(client_socket, path)
+            # If the method is POST, the method calls handle_post_request() to process the form data.
             elif method.upper() == "POST":
-                self.handle_post_request(client_socket, path, headers, body, client_address)
+                self.handle_post_request(client_socket, path, headers, body)
+            # If the method is neither GET nor POST, the method calls handle_unsupported_method().
             else:
                 self.handle_unsupported_method(client_socket, method)
         except Exception as e:
             print(f"Error handling request from {client_address}: {e}")
         finally:
+            # After processing the request, the method closes the client socket to terminate the connection.
             client_socket.close()
 
-    def handle_get_request(self, client_socket, file_path, client_address):
+    def handle_get_request(self, client_socket, file_path):
         try:
-            # If the requested path is "/", serve "index.html"
-            if file_path == "/":
-                file_path = "/index.html"
+            client_address = client_socket.getpeername()
 
             # Construct the full file path
             assets_dir = os.path.join(os.getcwd(), "assets")
@@ -212,8 +204,11 @@ class Server:
         except Exception as e:
             print(f"Error handling GET request for {file_path} from {client_address}: {e}")
 
-    def handle_post_request(self, client_socket, path, headers, body, client_address):
+    def handle_post_request(self, client_socket, path, headers, body):
         try:
+            client_address = client_socket.getpeername()
+
+            # For any other paths, the method returns a "404 Not Found" status with an appropriate error message.
             if path != "/change_name":
                 # Unsupported POST path
                 response_body = "<h1>404 Not Found</h1>".encode('utf-8')
@@ -237,14 +232,15 @@ class Server:
             form_data = parse_qs(body)
             name = form_data.get("name", ["Guest"])[0]
 
-            # Use only the IP address (client_address[0]) as the session key
+            # updates the client's name in the sessions dictionary with the provided value from the form data. 
             with self.lock:
                 self.sessions[client_address[0]] = name  # Update session
 
             # Debug: print session data after update
             print(f"Updated session: {self.sessions}")
 
-            # Prepare response
+            # The method then prepares a successful HTTP response by responding with a "200 OK" status 
+            # and a message like "Name updated" within the response body.
             response_body = b"Name updated"
             response = (
                 "HTTP/1.1 200 OK\r\n"
@@ -252,19 +248,17 @@ class Server:
                 "Content-Type: text/plain\r\n"
                 "\r\n"
             ).encode('utf-8') + response_body
-            client_socket.sendall(response)
 
+            # Finally, the method constructs and sends the complete HTTP response, 
+            # including necessary headers like content type and length, back to the client.
+            client_socket.sendall(response)
         except Exception as e:
             print(f"Error handling POST request for {path} from {client_address}: {e}")
 
-
-
     def handle_unsupported_method(self, client_socket, method):
-        """
-        Handles HTTP methods that are not supported by the server.
-        Sends a 405 Method Not Allowed response.
-        """
+        # When an unsupported method is detected, the method generates a "405 Method Not Allowed" response
         try:
+            # The response body contains an HTML message informing the client that the method used is not allowed. 
             response_body = f"<h1>405 Method Not Allowed</h1><p>The method {method} is not allowed.</p>".encode('utf-8')
             response = (
                 "HTTP/1.1 405 Method Not Allowed\r\n"
@@ -273,6 +267,8 @@ class Server:
                 "Allow: GET, POST\r\n"
                 "\r\n"
             ).encode('utf-8') + response_body
+            # Finally, the method constructs and sends the complete HTTP response, 
+            # including necessary headers like content type and length, back to the client.
             client_socket.sendall(response)
         except Exception as e:
             print(f"Error handling unsupported method {method}: {e}")
