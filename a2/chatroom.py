@@ -188,3 +188,161 @@ class ClientTCP:
         finally:
             self.client_socket.close()
 
+class ServerUDP:
+    def __init__(self, server_port):
+        self.server_port = server_port
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        addr = socket.gethostbyname(socket.gethostname())
+        self.server_socket.bind((addr, self.server_port))
+        self.server_socket.setblocking(False)
+
+        self.clients = {}
+        self.messages = []
+        
+    def broadcast(self):
+        if self.messages:
+            sender_addr, message = self.messages[-1]
+            for client_addr in self.clients:
+                if client_addr != sender_addr:
+                    sender = ""
+                    # not exit and not join
+                    # format is 'User x left' and 'User x joined'
+                    # check if first 4 characters are 'User' and last 4 characters are 'left'
+                    # or first 4 characters are 'User' and last 5 characters are 'joined'
+                    if message[:4] == "User" and (message[-4:] == "left" or message[-6:] == "joined"):
+                        sender = ""
+                    else:
+                        sender = f"{self.clients[sender_addr]}: "
+                    
+                    try:
+                        self.server_socket.sendto(f"{sender}{message}".encode(), client_addr)
+                    except Exception as e:
+                        print(f"Error broadcasting message: {e}")
+    
+    def accept_client(self, client_addr, message):
+        name = message[5:]
+        if name in self.clients.values():
+            self.server_socket.sendto(b"Name already taken", client_addr)
+            return False
+        
+        self.clients[client_addr] = name
+        self.server_socket.sendto(b"Welcome", client_addr)
+        self.messages.append((client_addr, f"User {name} joined"))
+        self.broadcast()
+        
+        return True
+    
+    def close_client(self, client_addr):
+        if client_addr in self.clients:
+            self.messages.append((client_addr, f"User {self.clients[client_addr]} left"))
+            del self.clients[client_addr]
+            self.broadcast()
+            return True
+        return False
+    
+    def shutdown(self):
+        shutdown_message = "server-shutdown"
+        for client_addr in self.clients:
+            self.server_socket.sendto(shutdown_message.encode(), client_addr)
+        
+        clients = list(self.clients.keys())
+        for client_addr in clients:
+            self.close_client(client_addr)
+
+        self.server_socket.close()
+
+    def get_clients_number(self):
+        return len(self.clients)
+    
+    def run(self):
+        try:
+            print("Server is running...")
+            while True:
+                readable, _, _ = select.select([self.server_socket], [], [], 1.0)
+                
+                if not readable:
+                    continue
+                
+                try:
+                    message, client_addr = self.server_socket.recvfrom(1024)
+                    message = message.decode()
+                    
+                    if message[:4] == "join":
+                        self.accept_client(client_addr, message)
+                    elif message == "exit":
+                        self.close_client(client_addr)
+                    else:
+                        self.messages.append((client_addr, message))
+                        self.broadcast()
+                except BlockingIOError:
+                    continue
+                
+        except KeyboardInterrupt:
+            print("Server shutting down...")
+            self.shutdown()
+
+class ClientUDP:
+    def __init__(self, client_name, server_port):
+        self.server_addr = socket.gethostbyname(socket.gethostname())
+        self.server_port = server_port
+        self.client_name = client_name
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        self.exit_run = threading.Event()
+        self.exit_receive = threading.Event()
+        
+    def connect_server(self):
+        self.client_socket.sendto(f"join:{self.client_name}".encode(), (self.server_addr, self.server_port))
+        
+        try:
+            response, _ = self.client_socket.recvfrom(1024)
+            if 'Welcome' in response.decode():
+                print("Connected to the chatroom.")
+                return True
+            else:
+                print("Failed to join the chatroom:", response.decode())
+                return False
+        except Exception as e:
+            print(f"Connection error: {e}")
+            return False
+        
+    def send(self, text):
+        self.client_socket.sendto(text.encode(), (self.server_addr, self.server_port))
+        
+    def receive(self):
+        while not self.exit_receive.is_set():
+            try:
+                data, _ = self.client_socket.recvfrom(1024)
+                message = data.decode()
+                if 'server-shutdown' in message:
+                    print("Server is shutting down.")
+                    self.exit_run.set()
+                    self.exit_receive.set()
+                    break
+                else:
+                    sys.stdout.write(f"\r{message}\n")
+                    sys.stdout.flush()
+                    sys.stdout.write(f"{self.client_name}: ")
+                    sys.stdout.flush()
+            except Exception as e:
+                print(f"Error receiving message: {e}")
+                break
+    
+    def run(self):
+        if self.connect_server():
+            receive_thread = threading.Thread(target=self.receive)
+            receive_thread.start()
+            
+            try:
+                while not self.exit_run.is_set():
+                    message = input(f"{self.client_name}: ")
+                    if message == 'exit':
+                        self.send('exit')
+                        self.exit_receive.set()
+                        break
+                    self.send(message)
+            except KeyboardInterrupt:
+                self.send('exit')
+                self.exit_receive.set()
+            finally:
+                self.client_socket.close()
