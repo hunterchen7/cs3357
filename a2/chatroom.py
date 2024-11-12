@@ -258,6 +258,9 @@ class ServerUDP:
         try:
             print("Server is running...")
             while True:
+                if not self.server_socket or self.server_socket.fileno() == -1:
+                    continue
+
                 readable, _, _ = select.select([self.server_socket], [], [], 1.0)
                 
                 if not readable:
