@@ -1,0 +1,79 @@
+2024-11-11 21:33:08,366 - sending packet 0
+2024-11-11 21:33:08,367 - packet 0 received
+2024-11-11 21:33:08,367 - sending packet 1
+2024-11-11 21:33:08,367 - packet 1 received
+2024-11-11 21:33:08,367 - sending packet 2
+2024-11-11 21:33:08,367 - packet 2 received
+2024-11-11 21:33:08,367 - packet 3 dropped
+2024-11-11 21:33:08,368 - ack 0 received
+2024-11-11 21:33:08,368 - packet 3 timed out
+2024-11-11 21:33:08,369 - sending packet 4
+2024-11-11 21:33:08,369 - packet 4 received out of order
+2024-11-11 21:33:08,369 - sending packet 1
+2024-11-11 21:33:08,369 - ack 1 received
+2024-11-11 21:33:08,369 - packet 1 received out of order
+2024-11-11 21:33:08,370 - sending packet 2
+2024-11-11 21:33:08,370 - sending packet 5
+2024-11-11 21:33:08,370 - packet 2 received out of order
+2024-11-11 21:33:08,370 - sending packet 3
+2024-11-11 21:33:08,370 - ack 2 received
+2024-11-11 21:33:08,371 - packet 5 received out of order
+2024-11-11 21:33:08,371 - sending packet 4
+2024-11-11 21:33:08,371 - sending packet 6
+2024-11-11 21:33:08,371 - packet 3 received
+2024-11-11 21:33:08,372 - packet 6 timed out
+2024-11-11 21:33:08,372 - ack 2 received, Ignoring
+2024-11-11 21:33:08,372 - packet 4 received
+2024-11-11 21:33:08,372 - sending packet 3
+2024-11-11 21:33:08,372 - ack 2 received, Ignoring
+2024-11-11 21:33:08,373 - packet 6 received out of order
+2024-11-11 21:33:08,373 - sending packet 4
+2024-11-11 21:33:08,373 - ack 2 received, Ignoring
+2024-11-11 21:33:08,373 - packet 3 received out of order
+2024-11-11 21:33:08,373 - sending packet 5
+2024-11-11 21:33:08,374 - ack 2 received, Ignoring
+2024-11-11 21:33:08,375 - packet 4 received out of order
+2024-11-11 21:33:08,375 - sending packet 6
+2024-11-11 21:33:08,375 - ack 3 received
+2024-11-11 21:33:08,375 - packet 5 received
+2024-11-11 21:33:08,405 - packet 7 dropped
+2024-11-11 21:33:08,405 - packet 7 timed out
+2024-11-11 21:33:08,405 - packet 6 received
+2024-11-11 21:33:08,405 - ack 4 received
+2024-11-11 21:33:08,405 - sending packet 5
+2024-11-11 21:33:08,405 - packet 5 received out of order
+2024-11-11 21:33:08,405 - sending packet 8
+2024-11-11 21:33:08,407 - sending packet 6
+2024-11-11 21:33:08,407 - packet 8 received out of order
+2024-11-11 21:33:08,407 - ack 4 received, Ignoring
+2024-11-11 21:33:08,407 - sending packet 7
+2024-11-11 21:33:08,407 - packet 6 received out of order
+2024-11-11 21:33:08,407 - ack 4 received, Ignoring
+2024-11-11 21:33:08,436 - packet 7 received
+2024-11-11 21:33:08,484 - ack 4 received, Ignoring
+2024-11-11 21:33:08,562 - ack 5 received
+2024-11-11 21:33:08,562 - sending packet 9
+2024-11-11 21:33:08,562 - ack 6 received
+2024-11-11 21:33:08,562 - sending packet 10
+2024-11-11 21:33:08,562 - ack 6 received, Ignoring
+2024-11-11 21:33:08,562 - packet 9 received out of order
+2024-11-11 21:33:08,593 - ack 6 received, Ignoring
+2024-11-11 21:33:08,640 - packet 10 received out of order
+2024-11-11 21:33:08,655 - ack 6 received, Ignoring
+2024-11-11 21:33:08,733 - ack 7 received
+2024-11-11 21:33:08,748 - packet 11 dropped
+2024-11-11 21:33:08,748 - packet 11 timed out
+2024-11-11 21:33:08,748 - ack 7 received, Ignoring
+2024-11-11 21:33:08,748 - sending packet 8
+2024-11-11 21:33:08,748 - packet 8 received
+2024-11-11 21:33:08,748 - ack 7 received, Ignoring
+2024-11-11 21:33:08,748 - sending packet 9
+2024-11-11 21:33:08,749 - packet 9 received
+2024-11-11 21:33:08,749 - ack 8 received
+2024-11-11 21:33:08,749 - sending packet 10
+2024-11-11 21:33:08,749 - packet 10 received
+2024-11-11 21:33:08,749 - ack 9 received
+2024-11-11 21:33:08,750 - sending packet 11
+2024-11-11 21:33:08,750 - packet 11 received
+2024-11-11 21:33:08,750 - ack 10 received
+2024-11-11 21:33:08,826 - ack 11 received
